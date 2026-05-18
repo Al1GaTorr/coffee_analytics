@@ -1,0 +1,151 @@
+x-service-defaults: &service-defaults
+  build: .
+  restart: unless-stopped
+  networks:
+    - coffee-net
+  deploy:
+    replicas: 2
+    restart_policy:
+      condition: on-failure
+    resources:
+      limits:
+        cpus: "0.50"
+        memory: 256M
+
+services:
+  frontend:
+    <<: *service-defaults
+    command: ["node", "frontend/server.js"]
+    ports:
+      - "5173:5173"
+    environment:
+      GATEWAY_URL: http://api-gateway:8080
+    depends_on:
+      - api-gateway
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5173/"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  api-gateway:
+    <<: *service-defaults
+    command: ["node", "src/services/gateway/server.js"]
+    ports:
+      - "8080:8080"
+    environment:
+      AUTH_URL: http://auth-service:3001
+      CATALOG_URL: http://catalog-service:3002
+      ORDER_URL: http://order-service:3003
+      PAYMENT_URL: http://payment-service:3004
+      NOTIFICATION_URL: http://notification-service:3005
+      PROFILE_URL: http://profile-service:3006
+      ANALYTICS_URL: http://analytics-service:3007
+    depends_on:
+      - auth-service
+      - catalog-service
+      - order-service
+      - payment-service
+      - notification-service
+      - profile-service
+      - analytics-service
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  auth-service:
+    <<: *service-defaults
+    command: ["node", "src/services/auth/server.js"]
+
+  catalog-service:
+    <<: *service-defaults
+    command: ["node", "src/services/catalog/server.js"]
+
+  order-service:
+    <<: *service-defaults
+    command: ["node", "src/services/orders/server.js"]
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 512M
+    environment:
+      CATALOG_URL: http://catalog-service:3002
+      PAYMENT_URL: http://payment-service:3004
+      NOTIFICATION_URL: http://notification-service:3005
+      ANALYTICS_URL: http://analytics-service:3007
+
+  payment-service:
+    <<: *service-defaults
+    command: ["node", "src/services/payments/server.js"]
+
+  notification-service:
+    <<: *service-defaults
+    command: ["node", "src/services/notifications/server.js"]
+
+  profile-service:
+    <<: *service-defaults
+    command: ["node", "src/services/profiles/server.js"]
+
+  analytics-service:
+    <<: *service-defaults
+    command: ["node", "src/services/analytics/server.js"]
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: coffee
+      POSTGRES_PASSWORD: coffee
+      POSTGRES_DB: coffee_analytics
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - coffee-net
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - coffee-net
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+    networks:
+      - coffee-net
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana-dashboard.json:/var/lib/grafana/dashboards/coffee-dashboard.json:ro
+    networks:
+      - coffee-net
+
+networks:
+  coffee-net:
+
+volumes:
+  postgres-data:
+  grafana-data:

@@ -1,0 +1,91 @@
+---
+- name: Deploy Coffee Analytics backend stack
+  hosts: coffee_nodes
+  become: true
+  vars:
+    project_dir: /opt/coffee-analytics
+    k8s_version: "1.29"
+  tasks:
+    - name: Install base packages
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-compose-plugin
+          - curl
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+        state: present
+        update_cache: true
+
+    - name: Ensure Docker service is running
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Add Kubernetes apt keyring
+      ansible.builtin.shell: |
+        curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{ k8s_version }}/deb/Release.key \
+          | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      args:
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: Add Kubernetes apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ k8s_version }}/deb/ /"
+        state: present
+        filename: kubernetes
+
+    - name: Install kubectl and kubeadm
+      ansible.builtin.apt:
+        name:
+          - kubectl
+          - kubeadm
+          - kubelet
+        state: present
+        update_cache: true
+
+    - name: Hold kubernetes packages at current version
+      ansible.builtin.dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop:
+        - kubectl
+        - kubeadm
+        - kubelet
+
+    - name: Create application directory
+      ansible.builtin.file:
+        path: "{{ project_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Copy backend project
+      ansible.builtin.synchronize:
+        src: ../
+        dest: "{{ project_dir }}"
+        delete: false
+        rsync_opts:
+          - "--exclude=node_modules"
+          - "--exclude=.git"
+
+    - name: Start backend stack
+      community.docker.docker_compose_v2:
+        project_src: "{{ project_dir }}"
+        state: present
+
+    - name: Apply Kubernetes manifests
+      ansible.builtin.command:
+        cmd: kubectl apply -f {{ project_dir }}/k8s/
+      register: k8s_apply
+      changed_when: "'configured' in k8s_apply.stdout or 'created' in k8s_apply.stdout"
+
+    - name: Verify gateway health
+      ansible.builtin.uri:
+        url: http://localhost:8080/health
+        status_code: 200
+      register: gateway_health
+      retries: 5
+      delay: 5
+      until: gateway_health.status == 200

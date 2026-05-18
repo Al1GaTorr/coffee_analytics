@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Corretto Checkout</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/"><span class="brand-mark" data-icon="coffee"></span><span>Corretto</span></a>
+      <nav aria-label="Main navigation">
+        <a href="/">Menu</a>
+        <a href="/checkout.html">Order</a>
+        <a href="/orders.html">My Orders</a>
+        <a href="/admin.html">Admin</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="workbench">
+        <div class="section-heading">
+          <p class="eyebrow">Checkout</p>
+          <h1>Confirm Your Order</h1>
+        </div>
+        <form id="checkoutForm" class="panel order-panel">
+          <div class="field-row">
+            <div class="user-display-field">
+              <label>Ordering as</label>
+              <p id="userDisplay" class="user-badge"></p>
+            </div>
+            <label>
+              Payment
+              <select id="paymentMethod" name="paymentMethod">
+                <option value="card">Card</option>
+                <option value="cash">Cash</option>
+                <option value="loyalty">Loyalty</option>
+              </select>
+            </label>
+          </div>
+          <input id="userId" name="userId" type="hidden" value="" />
+          <div id="checkoutItems" class="menu-picker" aria-live="polite"></div>
+          <button class="button primary full" type="submit"><span data-icon="check-circle"></span>Confirm order</button>
+          <p id="checkoutMessage" class="status-line" role="status"></p>
+        </form>
+      </section>
+    </main>
+
+    <script src="/icons.js"></script>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

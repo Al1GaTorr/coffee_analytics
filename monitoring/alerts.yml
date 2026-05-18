@@ -1,0 +1,24 @@
+groups:
+  - name: coffee-sre-alerts
+    rules:
+      - alert: HighErrorRate
+        expr: sum(rate(http_requests_total{status=~"5.."}[1m])) / clamp_min(sum(rate(http_requests_total[1m])), 1) > 0.01
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Error rate is above the 1% SLO
+      - alert: HighLatencyP95
+        expr: http_request_duration_p95_ms > 200
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: P95 latency is above the 200ms SLO
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: A coffee analytics backend service is down

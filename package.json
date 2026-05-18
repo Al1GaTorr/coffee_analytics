@@ -1,0 +1,31 @@
+{
+  "name": "coffee-analytics-sre-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Coffee analytics SRE microservices system with a light coffee-shop operations frontend.",
+  "type": "module",
+  "scripts": {
+    "start:gateway": "node src/services/gateway/server.js",
+    "start:auth": "node src/services/auth/server.js",
+    "start:catalog": "node src/services/catalog/server.js",
+    "start:orders": "node src/services/orders/server.js",
+    "start:payments": "node src/services/payments/server.js",
+    "start:notifications": "node src/services/notifications/server.js",
+    "start:profiles": "node src/services/profiles/server.js",
+    "start:analytics": "node src/services/analytics/server.js",
+    "start:frontend": "node frontend/server.js",
+    "free-frontend-port": "npx kill-port 5173",
+    "start:frontend:force": "npx kill-port 5173 && npm run start:frontend",
+    "test": "node --test tests/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "sre",
+    "microservices",
+    "coffee",
+    "analytics",
+    "clean-architecture"
+  ]
+}

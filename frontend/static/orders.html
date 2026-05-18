@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Corretto Orders</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/"><span class="brand-mark" data-icon="coffee"></span><span>Corretto</span></a>
+      <nav aria-label="Main navigation">
+        <a href="/">Menu</a>
+        <a href="/checkout.html">Order</a>
+        <a href="/orders.html">My Orders</a>
+        <a href="/admin.html">Admin</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="section-band">
+        <div class="section-heading">
+          <p class="eyebrow">Order status</p>
+          <h1>My Orders</h1>
+        </div>
+        <p id="ordersUserDisplay" class="user-badge" style="margin-bottom:1.5rem;"></p>
+        <p id="ordersMessage" class="status-line"></p>
+        <div id="ordersList" class="orders-grid" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <script src="/icons.js"></script>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

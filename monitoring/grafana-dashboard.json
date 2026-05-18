@@ -1,0 +1,31 @@
+{
+  "title": "Coffee Analytics SRE Dashboard",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Service Uptime",
+      "targets": [{ "expr": "service_uptime_seconds" }],
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 4 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Rate",
+      "targets": [{ "expr": "sum(rate(http_requests_total[1m])) by (service)" }],
+      "gridPos": { "x": 8, "y": 0, "w": 8, "h": 4 }
+    },
+    {
+      "type": "timeseries",
+      "title": "P95 Latency",
+      "targets": [{ "expr": "http_request_duration_p95_ms" }],
+      "gridPos": { "x": 16, "y": 0, "w": 8, "h": 4 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error Rate",
+      "targets": [{ "expr": "sum(rate(http_requests_total{status=~\"5..\"}[1m])) by (service)" }],
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 6 }
+    }
+  ]
+}

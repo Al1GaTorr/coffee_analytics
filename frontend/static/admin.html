@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Corretto Admin</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/"><span class="brand-mark" data-icon="coffee"></span><span>Corretto</span></a>
+      <nav aria-label="Main navigation">
+        <a href="/">Menu</a>
+        <a href="/checkout.html">Order</a>
+        <a href="/orders.html">My Orders</a>
+        <a href="/admin.html">Admin</a>
+      </nav>
+    </header>
+
+    <main id="adminRoot">
+      <section class="section-band">
+        <div class="section-heading">
+          <p class="eyebrow">Admin only</p>
+          <h1>Admin Panel</h1>
+        </div>
+        <p id="adminMessage" class="status-line"></p>
+
+        <!-- Analytics stats -->
+        <div id="adminAnalytics" class="metrics-strip admin-metrics"></div>
+
+        <!-- Top product + sales charts -->
+        <div class="admin-charts-row">
+          <div id="adminTopProduct" class="admin-chart-card"></div>
+          <div id="adminSalesChart" class="admin-chart-card"></div>
+        </div>
+
+        <!-- Catalog management -->
+        <section class="admin-section">
+          <div class="section-heading">
+            <p class="eyebrow">Catalog management</p>
+            <h2>Add Menu Item</h2>
+          </div>
+          <form id="itemForm" class="panel admin-form">
+            <input name="name" placeholder="Name" required />
+            <input name="category" placeholder="Coffee / Ice Coffee / Dessert" required />
+            <input name="price" type="number" step="0.01" placeholder="Price" required />
+            <input name="description" placeholder="Description" required />
+            <input name="stock" type="number" placeholder="Stock" value="100" />
+            <button class="button primary" type="submit">Add item</button>
+          </form>
+          <div id="adminCatalog" class="admin-list"></div>
+        </section>
+
+        <!-- Active orders -->
+        <section class="admin-section">
+          <div class="section-heading">
+            <p class="eyebrow">Order control</p>
+            <h2>Active Orders</h2>
+          </div>
+          <div id="adminOrders" class="orders-grid"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/icons.js"></script>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
