@@ -119,6 +119,11 @@ services:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - coffee-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coffee -d coffee_analytics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -127,6 +132,11 @@ services:
       - "6379:6379"
     networks:
       - coffee-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   prometheus:
     image: prom/prometheus:v2.55.1
