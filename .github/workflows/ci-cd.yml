@@ -27,13 +27,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          
 
       # package.json has no dependencies, so we skip `npm ci`
       # but keep it here for when you add packages later
       - name: Install dependencies (if any)
         run: |
-          if [ -f package-lock.json ]; then npm ci; fi
+          if [ -f package-lock.json ]; then npm ci; elif [ -f package.json ]; then npm install; fi
 
       - name: Run unit tests
         run: npm test
