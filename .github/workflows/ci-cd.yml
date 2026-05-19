@@ -12,10 +12,10 @@ env:
   IMAGE_FRONTEND: ${{ github.repository }}-frontend
   NODE_VERSION: '20'
 
-# ─────────────────────────────────────────────
-# JOB 1 – Run tests
-# ─────────────────────────────────────────────
 jobs:
+  # ─────────────────────────────────────────────
+  # JOB 1 – Run tests
+  # ─────────────────────────────────────────────
   test:
     name: Run Tests
     runs-on: ubuntu-latest
@@ -27,10 +27,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          
 
-      # package.json has no dependencies, so we skip `npm ci`
-      # but keep it here for when you add packages later
       - name: Install dependencies (if any)
         run: |
           if [ -f package-lock.json ]; then npm ci; elif [ -f package.json ]; then npm install; fi
@@ -52,7 +49,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      # Basic sanity: make sure all JS files parse without syntax errors
       - name: Syntax check – shared utilities
         run: node --check src/shared/*.js
 
@@ -74,7 +70,6 @@ jobs:
 
   # ─────────────────────────────────────────────
   # JOB 3 – Build & push Docker images
-  # Only runs on push to master/main (not on PRs)
   # ─────────────────────────────────────────────
   build-and-push:
     name: Build & Push Images
@@ -99,7 +94,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # ── Backend image ──────────────────────────
       - name: Extract backend image metadata
         id: meta-backend
         uses: docker/metadata-action@v5
@@ -120,7 +114,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # ── Frontend image ─────────────────────────
       - name: Extract frontend image metadata
         id: meta-frontend
         uses: docker/metadata-action@v5
@@ -142,15 +135,13 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ─────────────────────────────────────────────
-  # JOB 4 – Deploy (docker compose on your server)
-  # Only runs on push to master/main after images are built
+  # JOB 4 – Deploy to Oracle server via SSH
   # ─────────────────────────────────────────────
   deploy:
     name: Deploy to Server
     runs-on: ubuntu-latest
     needs: build-and-push
     if: github.event_name == 'push'
-    environment: production
 
     steps:
       - name: Checkout code
@@ -164,28 +155,18 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             set -e
-
-            # Pull latest code
             cd ~/coffee_analytics
             git pull origin master
-
-            # Log in to GHCR on the server
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
-              -u ${{ github.actor }} --password-stdin
-
-            # Pull new images and restart stack
             docker compose pull
             docker compose up -d --remove-orphans
-
-            # Quick health check – wait up to 30s for gateway
             for i in $(seq 1 6); do
               STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health || true)
               if [ "$STATUS" = "200" ]; then
-                echo "✅ Gateway healthy"
+                echo "Gateway healthy"
                 exit 0
               fi
-              echo "Waiting for gateway... ($i/6)"
+              echo "Waiting... ($i/6)"
               sleep 5
             done
-            echo "❌ Gateway did not become healthy"
+            echo "Gateway did not become healthy"
             exit 1
